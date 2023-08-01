@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+
 # pylint: disable=no-name-in-module,F0401,W0232,C0111,R0201
 
 
@@ -9,17 +10,17 @@ def readme():
 
 
 setup(
-    name='lib7shifts',
-    version="1.1",
-    description='Python 7shifts API client',
+    name="lib7shifts",
+    version="20230501",
+    description="Python 7shifts API client",
     long_description=readme(),
-    author='Prairie Dog Brewing CANADA Inc',
-    author_email='gerad@prairiedogbrewing.ca',
-    url='https://github.com/geradcoles/lib7shifts',
+    author="Prairie Dog Brewing CANADA Inc",
+    author_email="gerad@prairiedogbrewing.ca",
+    url="https://github.com/geradcoles/lib7shifts",
     packages=find_packages(),
     install_requires=[],
     scripts=[
-        'bin/7shifts',
+        "bin/7shifts",
     ],
     test_suite="nose.collector",
 )

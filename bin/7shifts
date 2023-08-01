@@ -51,25 +51,38 @@ from lib7shifts.exceptions import APIError
 from docopt import docopt
 
 VALID_CMDS = (
-    'company', 'department', 'location', 'event', 'role', 'shift', 'sync',
-    'receipt', 'time_punch', 'user', 'wage', 'daily_sales_labor', 'whoami',
-    'assignments')
+    "company",
+    "department",
+    "location",
+    "event",
+    "role",
+    "shift",
+    "sync",
+    "receipt",
+    "time_punch",
+    "user",
+    "wage",
+    "daily_sales_labor",
+    "whoami",
+    "assignments",
+)
 
 
 def main(**args):
     """Call the `main` method in the appropriate :mod:`lib7shifts.cmd`
     module based on the subcommand specified by the user."""
-    cmd = args['<command>']
-    argv = [cmd] + args['<args>']
+    cmd = args["<command>"]
+    argv = [cmd] + args["<args>"]
     if cmd in VALID_CMDS:
-        module = importlib.import_module('lib7shifts.cmd.{}'.format(cmd))
+        module = importlib.import_module("lib7shifts.cmd.{}".format(cmd))
         try:
             module.main(**docopt(module.__doc__, argv=argv))
         except APIError as error:
-            logging.getLogger('lib7shifts.cli.7shifts').fatal(
-                'Encountered an API error:\n%s', error.pretty_response())
+            logging.getLogger("lib7shifts.cli.7shifts").fatal(
+                "Encountered an API error:\n%s", error.pretty_response()
+            )
             return 99
-    elif cmd == 'help':
+    elif cmd == "help":
         print(__doc__)
     else:
         print("command {} is not valid".format(cmd))
@@ -77,23 +90,25 @@ def main(**args):
     return 0
 
 
-if __name__ == '__main__':
-    ARGS = docopt(__doc__, version='1.1', options_first=True)
-    LOG_FORMAT = '%(asctime)s %(name)s %(levelname)s %(message)s'
-    LOG_DATE_FORMAT = '%Y-%m-%d %I:%M:%S'
-    LOG_MODE = 'w'
-    if ARGS.get('--append-log'):
-        LOG_MODE = 'a+'
+if __name__ == "__main__":
+    ARGS = docopt(__doc__, version="20230501", options_first=True)
+    LOG_FORMAT = "%(asctime)s %(name)s %(levelname)s %(message)s"
+    LOG_DATE_FORMAT = "%Y-%m-%d %I:%M:%S"
+    LOG_MODE = "w"
+    if ARGS.get("--append-log"):
+        LOG_MODE = "a+"
     PACKAGE_LOG_LEVEL = logging.INFO
-    if ARGS.get('--debug'):
+    if ARGS.get("--debug"):
         PACKAGE_LOG_LEVEL = logging.DEBUG
     logging.basicConfig(
-        filename=ARGS.get('--log', None), filemode=LOG_MODE,
-        level=logging.INFO, format=LOG_FORMAT,
-        datefmt=LOG_DATE_FORMAT)
-    if ARGS.get('--debug-api'):
-        logging.getLogger('urllib3').setLevel(logging.DEBUG)
-    logging.getLogger('lib7shifts').setLevel(PACKAGE_LOG_LEVEL)
-    logging.getLogger('lib7shifts.cli.7shifts').debug(
-        'started with args: %s', ARGS)
+        filename=ARGS.get("--log", None),
+        filemode=LOG_MODE,
+        level=logging.INFO,
+        format=LOG_FORMAT,
+        datefmt=LOG_DATE_FORMAT,
+    )
+    if ARGS.get("--debug-api"):
+        logging.getLogger("urllib3").setLevel(logging.DEBUG)
+    logging.getLogger("lib7shifts").setLevel(PACKAGE_LOG_LEVEL)
+    logging.getLogger("lib7shifts.cli.7shifts").debug("started with args: %s", ARGS)
     sys.exit(main(**ARGS))

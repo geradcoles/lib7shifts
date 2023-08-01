@@ -18,25 +18,41 @@ import datetime
 import json
 import certifi
 import urllib3
+
 try:
     from urllib import urlencode
 except ImportError:
     from urllib.parse import urlencode
-from .time_punches import (get_punch, list_punches, TimePunch,
-                           TimePunchBreak, TimePunchBreakList)
-from .locations import (get_location, list_locations, Location)
-from .shifts import (get_shift, list_shifts, Shift)
-from .companies import (get_company, list_companies, Company)
-from .users import (get_user, list_users, User)
-from .wages import (list_user_wages, Wage, WageList)
-from .assignments import (list_user_assignments, Assignments)
-from .roles import (get_role, list_roles, Role)
-from .departments import (get_department, list_departments,
-                          Department)
-from .events import (create_event, get_event, update_event, delete_event,
-                     list_events, Event)
-from .receipts import (get_receipt, create_receipt, update_receipt,
-                       list_receipts, Receipt)
+from .time_punches import (
+    get_punch,
+    list_punches,
+    TimePunch,
+    TimePunchBreak,
+    TimePunchBreakList,
+)
+from .locations import get_location, list_locations, Location
+from .shifts import get_shift, list_shifts, Shift
+from .companies import get_company, list_companies, Company
+from .users import get_user, list_users, User
+from .wages import list_user_wages, Wage, WageList
+from .assignments import list_user_assignments, Assignments
+from .roles import get_role, list_roles, Role
+from .departments import get_department, list_departments, Department
+from .events import (
+    create_event,
+    get_event,
+    update_event,
+    delete_event,
+    list_events,
+    Event,
+)
+from .receipts import (
+    get_receipt,
+    create_receipt,
+    update_receipt,
+    list_receipts,
+    Receipt,
+)
 from .hours_wages import get_hours_and_wages_report
 from .daily_sales_labor import get_daily_sales_and_labor
 from .whoami import get_whoami
@@ -45,7 +61,7 @@ from . import exceptions
 
 #: Specify the name of the environment variable where this code expects to
 #: find the 7shifts API key, if not provided by the user directly.
-ACCESS_TOKEN_ENVVAR = 'ACCESS_TOKEN_7SHIFTS'
+ACCESS_TOKEN_ENVVAR = "ACCESS_TOKEN_7SHIFTS"
 
 
 def get_client(access_token=None, **kwargs):
@@ -66,7 +82,8 @@ def get_access_token_from_env():
         raise AssertionError(
             "No access token provided and {} not found in environment".format(
                 ACCESS_TOKEN_ENVVAR
-            ))
+            )
+        )
 
 
 class APIClient7Shifts(object):
@@ -80,11 +97,11 @@ class APIClient7Shifts(object):
     original design and inspiration.
     """
 
-    BASE_URL = 'https://api.7shifts.com/v2'
-    ENCODING = 'utf8'
+    BASE_URL = "https://api.7shifts.com/v2"
+    ENCODING = "utf8"
     KEEP_ALIVE = True
-    USER_AGENT = 'py-lib7shifts'
-    API_VERSION = '2022-10-01'
+    USER_AGENT = "py-lib7shifts"
+    API_VERSION = "2023-05-01"
 
     def __init__(self, **kwargs):
         """
@@ -94,45 +111,43 @@ class APIClient7Shifts(object):
         - rate_limit_lock - from apiclient.ratelimiter module
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.access_token = kwargs.pop('access_token')
-        self.rate_limit_lock = kwargs.pop('rate_limit_lock', None)
+        self.access_token = kwargs.pop("access_token")
+        self.rate_limit_lock = kwargs.pop("rate_limit_lock", None)
         self.__connection_pool = None
 
     def get_endpoint(self, endpoint, **urlopen_kw):
         """Directly make a GET call against `endpoint` with the defined
         urlopen_kw args"""
-        return self._request(
-            'GET', endpoint, **urlopen_kw)
+        return self._request("GET", endpoint, **urlopen_kw)
 
     def read(self, endpoint, item_id, **urlopen_kw):
         """Perform Reads against 7shifts API for the specified endpoint/ID.
         Pass parameters using the `fields` kwarg."""
-        return self.get_endpoint(
-            "{}/{}".format(endpoint, item_id), **urlopen_kw)
+        return self.get_endpoint("{}/{}".format(endpoint, item_id), **urlopen_kw)
 
     def create(self, endpoint, **urlopen_kw):
         """Performs Create operations in the 7shifts API
         IMPORTANT: Pass POST data using the ``body`` kwarg, unencoded. The
         data will be JSON encoded before posting.
         """
-        body = json.dumps(urlopen_kw.pop('body', dict()))
-        return self._request(
-            'POST', endpoint, body=body, **urlopen_kw)
+        body = json.dumps(urlopen_kw.pop("body", dict()))
+        return self._request("POST", endpoint, body=body, **urlopen_kw)
 
-    def update(self, endpoint, item_id, method='PUT', **urlopen_kw):
+    def update(self, endpoint, item_id, method="PUT", **urlopen_kw):
         """Perform Update operations for the given endpoint/item_id
         IMPORTANT: Pass PUT data using the ``body`` kwarg, unencoded. The
         data will be JSON encoded before posting.
         """
-        body = json.dumps(urlopen_kw.pop('body', dict()))
+        body = json.dumps(urlopen_kw.pop("body", dict()))
         return self._request(
-            method.upper(), "{}/{:d}".format(endpoint, item_id),
-            body=body, **urlopen_kw)
+            method.upper(), "{}/{:d}".format(endpoint, item_id), body=body, **urlopen_kw
+        )
 
     def delete(self, endpoint, item_id, **urlopen_kw):
         "Delete the item at the given endpoint with the given ID"
         return self._request(
-            'DELETE', "{}/{:d}".format(endpoint, item_id), **urlopen_kw)
+            "DELETE", "{}/{:d}".format(endpoint, item_id), **urlopen_kw
+        )
 
     def list(self, endpoint, **urlopen_kw):
         """Implements the List method for 7shifts API objects.
@@ -142,23 +157,21 @@ class APIClient7Shifts(object):
         format, such as full date time, pass in as a string-formatted date.
         """
         fields = {}
-        for key, val in urlopen_kw.get('fields', {}).items():
+        for key, val in urlopen_kw.get("fields", {}).items():
             # print('item: {}'.format(key))
             if isinstance(val, bool):
                 if val:
-                    fields[key] = 'true'
+                    fields[key] = "true"
                 else:
-                    fields[key] = 'false'
-            elif isinstance(
-                    val, (datetime.date, datetime.datetime)):
+                    fields[key] = "false"
+            elif isinstance(val, (datetime.date, datetime.datetime)):
                 # This is the most common use case. Callers that need a diff
                 # format must provide a formatted string.
                 fields[key] = val.strftime("%Y-%m-%d")
             else:
                 fields[key] = val
-        urlopen_kw['fields'] = fields
-        return self._request(
-            'GET', endpoint, **urlopen_kw)
+        urlopen_kw["fields"] = fields
+        return self._request("GET", endpoint, **urlopen_kw)
 
     @property
     def _connection_pool(self):
@@ -191,8 +204,7 @@ class APIClient7Shifts(object):
             self.rate_limit_lock.acquire()
         except AttributeError:
             pass
-        response = self._connection_pool.request(
-            method.upper(), path, **urlopen_kw)
+        response = self._connection_pool.request(method.upper(), path, **urlopen_kw)
         return self._handle_response(response)
 
     def _destroy_pool(self):
@@ -212,15 +224,18 @@ class APIClient7Shifts(object):
         Stores a reference to the pool for use with :attr:`_connection_pool`
         """
         headers = urllib3.util.make_headers(
-            keep_alive=self.KEEP_ALIVE,
-            user_agent=self.USER_AGENT)
-        headers['Authorization'] = f'Bearer {self.access_token}'
-        headers['x-api-version'] = self.API_VERSION
-        headers['accept'] = 'application/json'
-        headers['content-type'] = 'application/json'
+            keep_alive=self.KEEP_ALIVE, user_agent=self.USER_AGENT
+        )
+        headers["Authorization"] = f"Bearer {self.access_token}"
+        headers["x-api-version"] = self.API_VERSION
+        headers["accept"] = "application/json"
+        headers["content-type"] = "application/json"
         self.__connection_pool = urllib3.connectionpool.connection_from_url(
-            self.BASE_URL, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where(),
-            headers=headers)
+            self.BASE_URL,
+            cert_reqs="CERT_REQUIRED",
+            ca_certs=certifi.where(),
+            headers=headers,
+        )
 
     def _handle_response(self, response):
         """
