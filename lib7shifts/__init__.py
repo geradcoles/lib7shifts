@@ -12,6 +12,7 @@ import this module to use the full suite, eg::
 Note that this code currently only supports access tokens rather than OAUTH.
 
 """
+
 import os
 import logging
 import datetime
@@ -55,6 +56,8 @@ from .receipts import (
 )
 from .hours_wages import get_hours_and_wages_report
 from .daily_sales_labor import get_daily_sales_and_labor
+from .log_book_category import list_log_book_categories
+from .log_book_posts import get_log_book_post, list_log_book_posts
 from .whoami import get_whoami
 from . import dates
 from . import exceptions
@@ -249,3 +252,6 @@ class APIClient7Shifts(object):
         if response.status > 299:
             raise exceptions.APIError(response.status, response=response)
         return json.loads(response.data.decode(self.ENCODING))
+
+    def __str__(self):
+        return self.__class__.__name__
